@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2024-11-17
+
+### Changed
+- Repository cleanup: removed redundant test scripts and development files
+- Complete translation of all remaining German comments to English
+- Improved best practices:
+  - Added `gradle.properties` to `.gitignore` (local configuration)
+  - Made `run-mcp-server.sh` more generic (removed hardcoded macOS paths)
+  - Updated `.dockerignore` to keep `.github/` for CI/CD workflows
+  - Cleaned up `gradle.properties` with comments for team use
+
+### Removed
+- Test scripts: `test-mcp-interactive.py`, `test-list-tables.sh`, `test-docker.sh`
+- Redundant documentation: `TESTING.md`
+- Example configurations: `mcp.json.example`, `cursor-mcp-example.json`
+- Test utility classes from `src/main`: `TestDatabaseConnection`, `ComparePassphrases`, `TestKeychainAccess`, `TestDecryption`, `TestFullDecryption`
+- Backup files: `server.json.backup`, `check-ghcr.md`
+- Root-level test files: `TestKeychain.java`, `TestOS.java`
+
 ## [0.2.1] - 2024-11-17
 
 ### Changed
