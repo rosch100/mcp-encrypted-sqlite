@@ -30,6 +30,9 @@ COPY --from=builder /build/build/install/mcp-sqlite /app/mcp-sqlite
 RUN addgroup -S mcp && adduser -S mcp -G mcp && \
     chown -R mcp:mcp /app
 
+# Add MCP server label
+LABEL io.modelcontextprotocol.server.name="io.github.rosch100/mcp-sqlite"
+
 USER mcp
 
 # Set the entrypoint

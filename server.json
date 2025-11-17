@@ -10,17 +10,10 @@
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/rosch100/mcp-sqlite",
-      "version": "0.2.1",
+      "identifier": "ghcr.io/rosch100/mcp-sqlite:0.2.1",
       "transport": {
         "type": "stdio"
       },
-      "runtimeHint": "docker",
-      "runtimeArguments": [
-        "run",
-        "--rm",
-        "-i"
-      ],
       "environmentVariables": [
         {
           "description": "Path to the encrypted SQLite database file",
