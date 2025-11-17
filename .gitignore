@@ -50,3 +50,6 @@ __pycache__/
 # MCP Publisher tokens
 .mcpregistry_*
 
+# BFG cleanup reports
+..bfg-report/
+
