@@ -5,13 +5,13 @@ This guide explains how to configure the MCP SQLite Server using Docker Desktop 
 ## Prerequisites
 
 1. **Docker Desktop** installed and running
-2. **Docker image** pulled: `ghcr.io/rosch100/mcp-sqlite:0.2.1`
+2. **Docker image** pulled: `ghcr.io/rosch100/mcp-sqlite:0.2.2`
 3. **Encrypted SQLite database** file ready
 
 ## Pull the Docker Image
 
 ```bash
-docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1
+docker pull ghcr.io/rosch100/mcp-sqlite:0.2.2
 ```
 
 Or use the latest version:
@@ -37,7 +37,7 @@ Edit `~/.cursor/mcp.json` (or `%APPDATA%\Cursor\mcp.json` on Windows):
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -67,7 +67,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -91,7 +91,7 @@ Edit `%APPDATA%\Claude\claude_desktop_config.json`:
         "-i",
         "-v",
         "C:/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -115,7 +115,7 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -155,7 +155,7 @@ Use your encryption key directly.
         "MCP_SQLITE_ENCRYPTION_KEY=your-encryption-key-here",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"encrypted:your-encrypted-passphrase\"}"
       ]
@@ -186,7 +186,7 @@ Use your encryption key directly.
         "MCP_SQLITE_ENCRYPTION_KEY=REMOVED_ENCRYPTION_KEY=",
         "-v",
         "/Users/username/Library/Containers/com.moneymoney-app.retail/Data/Library/Application Support/MoneyMoney/Database/MoneyMoney.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"encrypted:REMOVED_ENCRYPTED_PASSPHRASE\"}"
       ]
@@ -221,7 +221,7 @@ To use a custom cipher profile:
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\",\"cipherProfile\":{\"name\":\"Custom\",\"pageSize\":4096,\"kdfIterations\":256000,\"hmacAlgorithm\":\"HMAC_SHA512\",\"kdfAlgorithm\":\"PBKDF2_HMAC_SHA512\"}}"
       ]
@@ -245,7 +245,7 @@ To enable write access to the database, remove the `:ro` flag:
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -271,7 +271,7 @@ To enable debug output:
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
         "-e",
         "MCP_DEBUG=true",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -289,7 +289,7 @@ Test the Docker container manually:
 ```bash
 docker run --rm -i \
   -v /path/to/your/database.sqlite:/data/database.sqlite:ro \
-  ghcr.io/rosch100/mcp-sqlite:0.2.1 \
+  ghcr.io/rosch100/mcp-sqlite:0.2.2 \
   --args '{"db_path":"/data/database.sqlite","passphrase":"your-passphrase"}'
 ```
 
@@ -301,7 +301,7 @@ Send an initialize request:
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | \
   docker run --rm -i \
   -v /path/to/your/database.sqlite:/data/database.sqlite:ro \
-  ghcr.io/rosch100/mcp-sqlite:0.2.1 \
+  ghcr.io/rosch100/mcp-sqlite:0.2.2 \
   --args '{"db_path":"/data/database.sqlite","passphrase":"your-passphrase"}'
 ```
 
@@ -341,7 +341,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
         "-i",
         "-v",
         "/Users/username/Library/Containers/com.moneymoney-app.retail/Data/Library/Application Support/MoneyMoney/Database/MoneyMoney.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -385,7 +385,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
 
 ### Image not found
 
-- Pull the image: `docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1`
+- Pull the image: `docker pull ghcr.io/rosch100/mcp-sqlite:0.2.2`
 - Check if the image exists: `docker images | grep mcp-sqlite`
 - Verify the tag is correct
 

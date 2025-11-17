@@ -5,7 +5,7 @@
 
 set -e
 
-JAR_FILE="build/libs/mcp-sqlite-0.2.1.jar"
+JAR_FILE="build/libs/mcp-sqlite-0.2.2.jar"
 
 # Check if JAR exists
 if [ ! -f "$JAR_FILE" ]; then

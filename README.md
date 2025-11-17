@@ -49,7 +49,7 @@ The executable will be available at `build/install/mcp-sqlite/bin/mcp-sqlite`.
 You can also use the pre-built Docker image from GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1
+docker pull ghcr.io/rosch100/mcp-sqlite:0.2.2
 ```
 
 Or use the latest version:
@@ -134,7 +134,7 @@ If you're using the Docker image, configure it as follows:
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -160,7 +160,7 @@ When using encrypted passphrases, you **must** pass the encryption key as an env
         "MCP_SQLITE_ENCRYPTION_KEY=your-encryption-key",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"encrypted:your-encrypted-passphrase\"}"
       ]

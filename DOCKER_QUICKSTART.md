@@ -5,7 +5,7 @@ Quick setup guide for using the MCP SQLite Server with Docker Desktop.
 ## Step 1: Pull the Image
 
 ```bash
-docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1
+docker pull ghcr.io/rosch100/mcp-sqlite:0.2.2
 ```
 
 ## Step 2: Configure Your MCP Client
@@ -26,7 +26,7 @@ docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -66,7 +66,7 @@ If you're using encrypted passphrases (recommended for security):
         "MCP_SQLITE_ENCRYPTION_KEY=your-encryption-key-here",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"encrypted:your-encrypted-passphrase\"}"
       ]
@@ -105,7 +105,7 @@ If you're using encrypted passphrases (recommended for security):
            "-i",
            "-v",
            "C:/path/to/your/database.sqlite:/data/database.sqlite:ro",
-           "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+           "ghcr.io/rosch100/mcp-sqlite:0.2.2",
            "--args",
            "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
          ]

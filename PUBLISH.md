@@ -3,9 +3,9 @@
 ## Prerequisites
 
 ✅ All files are prepared:
-- `server.json` with correct format (version 0.2.1)
+- `server.json` with correct format (version 0.2.2)
 - GitHub repository configured
-- Release v0.2.1 created (or ready to create)
+- Release v0.2.2 created (or ready to create)
 
 ## Steps to Publish
 
