@@ -150,7 +150,7 @@ The key will be automatically loaded from the Keychain when no environment varia
 
 1. **Generate an encryption key:**
    ```bash
-   java -cp build/libs/mcp-sqlite-0.1.0.jar com.example.mcp.sqlite.config.PassphraseEncryption
+   java -cp build/libs/mcp-sqlite-0.2.0.jar com.example.mcp.sqlite.config.PassphraseEncryption
    ```
    Or use this simple Java snippet:
    ```java
@@ -168,7 +168,7 @@ The key will be automatically loaded from the Keychain when no environment varia
    
    Using the CLI tool (after building):
    ```bash
-   java -cp build/libs/mcp-sqlite-0.1.0.jar com.example.mcp.sqlite.util.EncryptPassphrase "your-plain-passphrase"
+   java -cp build/libs/mcp-sqlite-0.2.0.jar com.example.mcp.sqlite.util.EncryptPassphrase "your-plain-passphrase"
    ```
    
    Or programmatically:

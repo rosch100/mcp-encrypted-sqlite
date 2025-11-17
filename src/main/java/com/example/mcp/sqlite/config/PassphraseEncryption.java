@@ -13,31 +13,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Verschlüsselungsklasse für Passphrasen mit AES-256-GCM.
- * GCM (Galois/Counter Mode) bietet authenticated encryption, ist sicher und schnell.
+ * Encryption class for passphrases using AES-256-GCM.
+ * GCM (Galois/Counter Mode) provides authenticated encryption, is secure and fast.
  */
 public final class PassphraseEncryption {
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
-    private static final int GCM_IV_LENGTH = 12; // 96 bits für GCM
-    private static final int GCM_TAG_LENGTH = 16; // 128 bits für Authentifizierung
-    private static final int KEY_LENGTH = 256; // 256 bits für AES-256
+    private static final int GCM_IV_LENGTH = 12; // 96 bits for GCM
+    private static final int GCM_TAG_LENGTH = 16; // 128 bits for authentication
+    private static final int KEY_LENGTH = 256; // 256 bits for AES-256
     private static final String ENCRYPTED_PREFIX = "encrypted:";
     
     private final SecretKey secretKey;
     
     /**
-     * Erstellt eine PassphraseEncryption-Instanz mit einem Schlüssel.
-     * Versucht zuerst macOS Keychain, dann Umgebungsvariable.
+     * Creates a PassphraseEncryption instance with a key.
+     * Tries macOS Keychain first, then environment variable.
      * 
-     * @return PassphraseEncryption-Instanz
-     * @throws IllegalStateException wenn kein Schlüssel gefunden wird
+     * @return PassphraseEncryption instance
+     * @throws IllegalStateException if no key is found
      */
     public static PassphraseEncryption fromEnvironment() {
         String keyBase64 = null;
         String keySource = null;
         
-        // Versuche zuerst macOS Keychain (falls verfügbar)
+        // Try macOS Keychain first (if available)
         if (KeychainKeyStore.isAvailable()) {
             try {
                 keyBase64 = KeychainKeyStore.loadKey();
@@ -45,34 +45,34 @@ public final class PassphraseEncryption {
                     keySource = "Keychain";
                 }
             } catch (Exception e) {
-                // Ignoriere Fehler und versuche Umgebungsvariable
-                System.err.println("Warnung: Fehler beim Laden aus Keychain: " + e.getMessage());
+                // Ignore errors and try environment variable
+                System.err.println("Warning: Error loading from Keychain: " + e.getMessage());
             }
         }
         
-        // Fallback auf Umgebungsvariable
+        // Fallback to environment variable
         if (keyBase64 == null || keyBase64.isEmpty()) {
             keyBase64 = System.getenv("MCP_SQLITE_ENCRYPTION_KEY");
             if (keyBase64 != null && !keyBase64.isEmpty()) {
-                keySource = "Umgebungsvariable";
+                keySource = "Environment variable";
             }
         }
         
         if (keyBase64 == null || keyBase64.isEmpty()) {
             StringBuilder message = new StringBuilder(
-                "Verschlüsselungsschlüssel nicht gefunden. "
+                "Encryption key not found. "
             );
             
             if (KeychainKeyStore.isAvailable()) {
                 message.append(
-                    "Bitte speichern Sie einen Schlüssel in der macOS Keychain:\n" +
-                    "  java -cp <jar> com.example.mcp.sqlite.util.StoreKeyInKeychain <schlüssel>\n" +
-                    "Oder setzen Sie die Umgebungsvariable:\n" +
-                    "  export MCP_SQLITE_ENCRYPTION_KEY=\"<schlüssel>\""
+                    "Please store a key in macOS Keychain:\n" +
+                    "  java -cp <jar> com.example.mcp.sqlite.util.StoreKeyInKeychain <key>\n" +
+                    "Or set the environment variable:\n" +
+                    "  export MCP_SQLITE_ENCRYPTION_KEY=\"<key>\""
                 );
             } else {
                 message.append(
-                    "Bitte setzen Sie die Umgebungsvariable:\n" +
+                    "Please set the environment variable:\n" +
                     "  export MCP_SQLITE_ENCRYPTION_KEY=\"$(java -cp <jar> com.example.mcp.sqlite.util.GenerateKey)\""
                 );
             }
@@ -80,22 +80,22 @@ public final class PassphraseEncryption {
             throw new IllegalStateException(message.toString());
         }
         
-        // Debug-Ausgabe (nur wenn System Property gesetzt ist)
+        // Debug output (only if System Property is set)
         if (System.getProperty("mcp.sqlite.debug") != null) {
-            System.err.println("Debug: Verschlüsselungsschlüssel geladen aus: " + keySource);
+            System.err.println("Debug: Encryption key loaded from: " + keySource);
         }
         
         return fromBase64Key(keyBase64);
     }
     
     /**
-     * Erstellt eine PassphraseEncryption-Instanz mit einem Schlüssel aus einer Umgebungsvariable.
-     * Falls die Umgebungsvariable nicht gesetzt ist, wird eine Warnung ausgegeben und ein
-     * deterministischer Schlüssel verwendet (NUR FÜR ENTWICKLUNG - NICHT FÜR PRODUKTION!).
+     * Creates a PassphraseEncryption instance with a key from an environment variable.
+     * If the environment variable is not set, a warning is issued and a
+     * deterministic key is used (ONLY FOR DEVELOPMENT - NOT FOR PRODUCTION!).
      * 
-     * @param allowFallback true, um einen Fallback-Schlüssel zu erlauben (nur für Entwicklung)
-     * @return PassphraseEncryption-Instanz
-     * @deprecated Verwenden Sie fromEnvironment() ohne Fallback für Produktion
+     * @param allowFallback true to allow a fallback key (development only)
+     * @return PassphraseEncryption instance
+     * @deprecated Use fromEnvironment() without fallback for production
      */
     @Deprecated
     public static PassphraseEncryption fromEnvironment(boolean allowFallback) {
@@ -105,48 +105,48 @@ public final class PassphraseEncryption {
         }
         if (!allowFallback) {
             throw new IllegalStateException(
-                "MCP_SQLITE_ENCRYPTION_KEY Umgebungsvariable ist nicht gesetzt. " +
-                "Bitte setzen Sie einen sicheren Verschlüsselungsschlüssel."
+                "MCP_SQLITE_ENCRYPTION_KEY environment variable is not set. " +
+                "Please set a secure encryption key."
             );
         }
-        // Warnung ausgeben
-        System.err.println("WARNUNG: MCP_SQLITE_ENCRYPTION_KEY ist nicht gesetzt!");
-        System.err.println("WARNUNG: Es wird ein deterministischer Fallback-Schlüssel verwendet.");
-        System.err.println("WARNUNG: Dies ist UNSICHER und sollte nur für Entwicklung verwendet werden!");
-        System.err.println("WARNUNG: Für Produktion setzen Sie bitte: export MCP_SQLITE_ENCRYPTION_KEY=\"<schlüssel>\"");
+        // Issue warning
+        System.err.println("WARNING: MCP_SQLITE_ENCRYPTION_KEY is not set!");
+        System.err.println("WARNING: A deterministic fallback key will be used.");
+        System.err.println("WARNING: This is INSECURE and should only be used for development!");
+        System.err.println("WARNING: For production, please set: export MCP_SQLITE_ENCRYPTION_KEY=\"<key>\"");
         return fromBase64Key(generateDeterministicKey());
     }
     
     /**
-     * Erstellt eine PassphraseEncryption-Instanz aus einem Base64-kodierten Schlüssel.
+     * Creates a PassphraseEncryption instance from a Base64-encoded key.
      * 
-     * @param keyBase64 Base64-kodierter 256-bit Schlüssel
-     * @return PassphraseEncryption-Instanz
-     * @throws IllegalArgumentException wenn der Schlüssel ungültig ist
+     * @param keyBase64 Base64-encoded 256-bit key
+     * @return PassphraseEncryption instance
+     * @throws IllegalArgumentException if the key is invalid
      */
     public static PassphraseEncryption fromBase64Key(String keyBase64) {
         if (keyBase64 == null || keyBase64.isEmpty()) {
-            throw new IllegalArgumentException("Schlüssel darf nicht leer sein");
+            throw new IllegalArgumentException("Key must not be empty");
         }
         
         byte[] keyBytes;
         try {
             keyBytes = Base64.getDecoder().decode(keyBase64);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Ungültiges Base64-Format für den Schlüssel", e);
+            throw new IllegalArgumentException("Invalid Base64 format for key", e);
         }
         
         if (keyBytes.length != KEY_LENGTH / 8) {
             throw new IllegalArgumentException(
-                String.format("Schlüssel muss genau %d Bytes (256 bits) lang sein, aber war %d Bytes", 
+                String.format("Key must be exactly %d bytes (256 bits) long, but was %d bytes", 
                     KEY_LENGTH / 8, keyBytes.length)
             );
         }
         
-        // Prüfe auf schwache Schlüssel (z.B. alle Nullen oder zu wenig Entropie)
+        // Check for weak keys (e.g., all zeros or insufficient entropy)
         if (isWeakKey(keyBytes)) {
             throw new IllegalArgumentException(
-                "Der Schlüssel ist zu schwach. Bitte verwenden Sie einen zufällig generierten Schlüssel."
+                "The key is too weak. Please use a randomly generated key."
             );
         }
         
@@ -155,13 +155,13 @@ public final class PassphraseEncryption {
     }
     
     /**
-     * Prüft, ob ein Schlüssel zu schwach ist (z.B. alle Nullen oder zu wenig Entropie).
+     * Checks if a key is too weak (e.g., all zeros or insufficient entropy).
      * 
-     * @param keyBytes Die Schlüsselbytes
-     * @return true wenn der Schlüssel schwach ist
+     * @param keyBytes The key bytes
+     * @return true if the key is weak
      */
     private static boolean isWeakKey(byte[] keyBytes) {
-        // Prüfe auf alle Nullen
+        // Check for all zeros
         boolean allZeros = true;
         for (byte b : keyBytes) {
             if (b != 0) {
@@ -173,8 +173,8 @@ public final class PassphraseEncryption {
             return true;
         }
         
-        // Prüfe auf zu wenig Entropie (z.B. sich wiederholende Muster)
-        // Einfache Heuristik: Wenn mehr als 75% der Bytes gleich sind, ist der Schlüssel schwach
+        // Check for insufficient entropy (e.g., repeating patterns)
+        // Simple heuristic: If more than 75% of bytes are equal, the key is weak
         Map<Byte, Integer> byteCounts = new HashMap<>();
         for (byte b : keyBytes) {
             byteCounts.put(b, byteCounts.getOrDefault(b, 0) + 1);
@@ -188,9 +188,9 @@ public final class PassphraseEncryption {
     }
     
     /**
-     * Generiert einen neuen zufälligen Verschlüsselungsschlüssel.
+     * Generates a new random encryption key.
      * 
-     * @return Base64-kodierter Schlüssel
+     * @return Base64-encoded key
      */
     public static String generateKey() {
         try {
@@ -199,18 +199,18 @@ public final class PassphraseEncryption {
             SecretKey key = keyGenerator.generateKey();
             return Base64.getEncoder().encodeToString(key.getEncoded());
         } catch (Exception e) {
-            throw new RuntimeException("Fehler beim Generieren des Schlüssels", e);
+            throw new RuntimeException("Error generating key", e);
         }
     }
     
     /**
-     * Generiert einen deterministischen Schlüssel für Entwicklung (nur für Tests).
+     * Generates a deterministic key for development (testing only).
      * 
-     * @return Base64-kodierter Schlüssel
+     * @return Base64-encoded key
      */
     private static String generateDeterministicKey() {
-        // Einfacher deterministischer Schlüssel für Entwicklung
-        // In Produktion sollte immer ein zufälliger Schlüssel verwendet werden
+        // Simple deterministic key for development
+        // In production, always use a random key
         String seed = "mcp-sqlite-default-key-development-only";
         byte[] keyBytes = new byte[32];
         byte[] seedBytes = seed.getBytes(StandardCharsets.UTF_8);
@@ -225,18 +225,18 @@ public final class PassphraseEncryption {
     }
     
     /**
-     * Verschlüsselt eine Passphrase.
+     * Encrypts a passphrase.
      * 
-     * @param passphrase Die zu verschlüsselnde Passphrase
-     * @return Verschlüsselte Passphrase mit Präfix "encrypted:" und Base64-Kodierung
+     * @param passphrase The passphrase to encrypt
+     * @return Encrypted passphrase with prefix "encrypted:" and Base64 encoding
      */
     public String encrypt(String passphrase) {
         if (passphrase == null || passphrase.isEmpty()) {
-            throw new IllegalArgumentException("Passphrase darf nicht leer sein");
+            throw new IllegalArgumentException("Passphrase must not be empty");
         }
         
         try {
-            // Generiere zufälligen IV für jede Verschlüsselung
+            // Generate random IV for each encryption
             byte[] iv = new byte[GCM_IV_LENGTH];
             SecureRandom random = new SecureRandom();
             random.nextBytes(iv);
@@ -248,29 +248,29 @@ public final class PassphraseEncryption {
             byte[] plaintext = passphrase.getBytes(StandardCharsets.UTF_8);
             byte[] ciphertext = cipher.doFinal(plaintext);
             
-            // Kombiniere IV und Ciphertext
+            // Combine IV and ciphertext
             byte[] encrypted = new byte[GCM_IV_LENGTH + ciphertext.length];
             System.arraycopy(iv, 0, encrypted, 0, GCM_IV_LENGTH);
             System.arraycopy(ciphertext, 0, encrypted, GCM_IV_LENGTH, ciphertext.length);
             
             return ENCRYPTED_PREFIX + Base64.getEncoder().encodeToString(encrypted);
         } catch (Exception e) {
-            throw new RuntimeException("Fehler beim Verschlüsseln der Passphrase", e);
+            throw new RuntimeException("Error encrypting passphrase", e);
         }
     }
     
     /**
-     * Entschlüsselt eine verschlüsselte Passphrase.
+     * Decrypts an encrypted passphrase.
      * 
-     * @param encryptedPassphrase Die verschlüsselte Passphrase (mit oder ohne Präfix)
-     * @return Die entschlüsselte Passphrase
+     * @param encryptedPassphrase The encrypted passphrase (with or without prefix)
+     * @return The decrypted passphrase
      */
     public String decrypt(String encryptedPassphrase) {
         if (encryptedPassphrase == null || encryptedPassphrase.isEmpty()) {
-            throw new IllegalArgumentException("Verschlüsselte Passphrase darf nicht leer sein");
+            throw new IllegalArgumentException("Encrypted passphrase must not be empty");
         }
         
-        // Entferne Präfix falls vorhanden
+        // Remove prefix if present
         String toDecrypt = encryptedPassphrase.startsWith(ENCRYPTED_PREFIX)
                 ? encryptedPassphrase.substring(ENCRYPTED_PREFIX.length())
                 : encryptedPassphrase;
@@ -279,10 +279,10 @@ public final class PassphraseEncryption {
             byte[] encrypted = Base64.getDecoder().decode(toDecrypt);
             
             if (encrypted.length < GCM_IV_LENGTH) {
-                throw new IllegalArgumentException("Ungültiges verschlüsseltes Format");
+                throw new IllegalArgumentException("Invalid encrypted format");
             }
             
-            // Extrahiere IV und Ciphertext
+            // Extract IV and ciphertext
             byte[] iv = new byte[GCM_IV_LENGTH];
             System.arraycopy(encrypted, 0, iv, 0, GCM_IV_LENGTH);
             
@@ -296,25 +296,25 @@ public final class PassphraseEncryption {
             byte[] plaintext = cipher.doFinal(ciphertext);
             return new String(plaintext, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException("Fehler beim Entschlüsseln der Passphrase", e);
+            throw new RuntimeException("Error decrypting passphrase", e);
         }
     }
     
     /**
-     * Prüft, ob eine Passphrase verschlüsselt ist.
+     * Checks if a passphrase is encrypted.
      * 
-     * @param passphrase Die zu prüfende Passphrase
-     * @return true wenn verschlüsselt, false sonst
+     * @param passphrase The passphrase to check
+     * @return true if encrypted, false otherwise
      */
     public static boolean isEncrypted(String passphrase) {
         return passphrase != null && passphrase.startsWith(ENCRYPTED_PREFIX);
     }
     
     /**
-     * Entfernt das Verschlüsselungspräfix von einer Passphrase.
+     * Removes the encryption prefix from a passphrase.
      * 
-     * @param passphrase Die Passphrase
-     * @return Passphrase ohne Präfix
+     * @param passphrase The passphrase
+     * @return Passphrase without prefix
      */
     public static String removePrefix(String passphrase) {
         if (passphrase != null && passphrase.startsWith(ENCRYPTED_PREFIX)) {
@@ -323,4 +323,3 @@ public final class PassphraseEncryption {
         return passphrase;
     }
 }
-

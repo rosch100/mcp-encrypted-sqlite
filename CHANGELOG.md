@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - SQL identifier validation to prevent SQL injection attacks
   - Input validation for limits, offsets, and identifiers
   - Maximum limit cap (10,000 rows) to prevent excessive memory usage
+  - **Encrypted Passphrases**: Support for AES-256-GCM encrypted passphrases
+    - macOS Keychain integration for secure key storage
+    - Environment variable support for cross-platform usage
+    - Automatic detection and decryption of encrypted passphrases
 - **Debug Mode:**
   - Optional debug output via `MCP_DEBUG` environment variable
   - Debug logs written to `stderr` (MCP protocol compliant)
