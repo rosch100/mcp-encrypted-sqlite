@@ -5,6 +5,7 @@ A Model Context Protocol (MCP) server for working with encrypted SQLite database
 ## Features
 
 - 🔐 **SQLCipher Support**: Works with SQLCipher 4 encrypted databases
+- 🔑 **Encrypted Passphrases**: Support for AES-256-GCM encrypted passphrases with macOS Keychain integration
 - 📊 **Database Exploration**: List tables, columns, indexes, and schema metadata
 - 🔍 **Query Support**: Execute arbitrary SQL queries (SELECT, INSERT, UPDATE, DELETE, DDL)
 - 📝 **CRUD Operations**: Insert, update, and delete rows with filtering
