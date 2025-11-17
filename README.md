@@ -53,12 +53,33 @@ Add the following to your Cursor `mcp.json` file (typically located at `~/.curso
       "args": [
         "--args",
         "{\"dbPath\":\"/path/to/your/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
+      ]
+    }
+  }
+}
+```
+
+**Optional Parameters:**
+
+Most parameters can be omitted if your system is properly configured:
+
+- **`transport`**: Defaults to `"stdio"` (can be omitted)
+- **`cwd`**: Not needed when using absolute paths (can be omitted)
+- **`env`**: Only needed if Java is not in your system PATH
+
+If you need to specify a custom Java installation, you can add:
+
+```json
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "/path/to/mcp-sqlite/build/install/mcp-sqlite/bin/mcp-sqlite",
+      "args": [
+        "--args",
+        "{\"dbPath\":\"/path/to/your/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ],
-      "cwd": "/path/to/mcp-sqlite",
-      "transport": "stdio",
       "env": {
-        "JAVA_HOME": "/path/to/java/home",
-        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin"
+        "JAVA_HOME": "/path/to/java/home"
       }
     }
   }
