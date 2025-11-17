@@ -1,20 +1,26 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.rosch100/mcp-sqlite",
-  "description": "MCP server for working with SQLCipher 4 encrypted SQLite databases. Provides tools to read database structures, query tables, and perform CRUD operations.",
+  "description": "MCP server for SQLCipher 4 encrypted SQLite databases with full CRUD operations and query support",
   "repository": {
     "url": "https://github.com/rosch100/mcp-sqlite",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.2.1",
   "packages": [
     {
-      "registryType": "github",
-      "identifier": "rosch100/mcp-sqlite",
-      "version": "0.1.0",
+      "registryType": "oci",
+      "identifier": "ghcr.io/rosch100/mcp-sqlite",
+      "version": "0.2.1",
       "transport": {
         "type": "stdio"
       },
+      "runtimeHint": "docker",
+      "runtimeArguments": [
+        "run",
+        "--rm",
+        "-i"
+      ],
       "environmentVariables": [
         {
           "description": "Path to the encrypted SQLite database file",
@@ -33,15 +39,21 @@
       ],
       "installation": {
         "type": "source",
-        "instructions": "git clone https://github.com/rosch100/mcp-sqlite.git && cd mcp-sqlite && ./gradlew build && ./gradlew installDist"
+        "instructions": "docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1"
       },
       "configuration": {
         "mcpServers": {
           "encrypted-sqlite": {
-            "command": "${SERVER_PATH}/build/install/mcp-sqlite/bin/mcp-sqlite",
+            "command": "docker",
             "args": [
+              "run",
+              "--rm",
+              "-i",
+              "-v",
+              "${DB_PATH}:/data/database.sqlite:ro",
+              "ghcr.io/rosch100/mcp-sqlite:0.2.1",
               "--args",
-              "{\"db_path\":\"${DB_PATH}\",\"passphrase\":\"${DB_PASSPHRASE}\"}"
+              "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"${DB_PASSPHRASE}\"}"
             ]
           }
         }

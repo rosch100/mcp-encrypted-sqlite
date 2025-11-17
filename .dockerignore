@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Build outputs
+build/
+.gradle/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+LICENSE
+LICENSES.md
+NOTICE
+CONTRIBUTING.md
+PUBLISH.md
+CHANGELOG.md
+
+# Scripts
+*.sh
+*.bat
+*.py
+
+# Test files
+test-*.sh
+test-*.py
+Test*.java
+
+# Config examples
+*.example
+*.backup
+
+# GitHub
+.github/
+

@@ -45,3 +45,6 @@ env/
 *.pyc
 __pycache__/
 
+# MCP Publisher tokens
+.mcpregistry_*
+

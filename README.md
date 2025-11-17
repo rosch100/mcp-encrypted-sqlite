@@ -44,6 +44,20 @@ The build process will automatically download `sqlite-jdbc-3.50.1.0.jar` from [s
 
 The executable will be available at `build/install/mcp-sqlite/bin/mcp-sqlite`.
 
+### Docker Installation (Alternative)
+
+You can also use the pre-built Docker image from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/rosch100/mcp-sqlite:0.2.1
+```
+
+Or use the latest version:
+
+```bash
+docker pull ghcr.io/rosch100/mcp-sqlite:latest
+```
+
 ## Configuration
 
 This MCP server can be used with any MCP-compatible client. The configuration format follows the [Model Context Protocol specification](https://modelcontextprotocol.io/).
@@ -98,6 +112,32 @@ If you need to specify a custom Java installation, you can add:
   }
 }
 ```
+
+### Docker Configuration
+
+If you're using the Docker image, configure it as follows:
+
+```json
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        "/path/to/your/database.sqlite:/data/database.sqlite:ro",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.1",
+        "--args",
+        "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
+      ]
+    }
+  }
+}
+```
+
+**Note:** The database file is mounted as read-only (`:ro`) by default. Remove `:ro` if you need write access.
 
 ### Custom Cipher Profile
 
