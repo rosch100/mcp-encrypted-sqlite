@@ -195,16 +195,206 @@ Use your encryption key directly.
 }
 ```
 
-#### Security Considerations
+#### ⚠️ Security Warning: Storing Encryption Keys in Configuration Files
 
-- **Never commit the encryption key** to version control
-- Store the encryption key securely (e.g., in a password manager)
-- Consider using environment variables in your shell instead of hardcoding in the config:
-  ```bash
-  export MCP_SQLITE_ENCRYPTION_KEY="your-key"
-  ```
-  Then reference it in your config (though Cursor may not expand shell variables)
-- The encryption key is visible in process lists, so be cautious in shared environments
+**IMPORTANT:** If both the encryption key and encrypted passphrase are stored as plain text in your configuration file (e.g., `mcp.json`), anyone with access to that file can decrypt your passphrase and gain access to your database.
+
+**Risks:**
+- Configuration files are typically not encrypted
+- Files may be included in backups, screenshots, or logs
+- Other processes may read the configuration file
+- Docker environment variables are visible in `docker ps` output
+- If the file is compromised, both values can be extracted
+
+**Recommended Solutions:**
+
+Choose one of the following secure approaches:
+
+### Option 1: Environment Variable from External Source (Recommended)
+
+Load the encryption key from an environment variable that is set outside the configuration file.
+
+**Step 1:** Create a secure script to load the key:
+
+**macOS/Linux** (`~/.config/mcp-sqlite/env.sh`):
+```bash
+#!/bin/bash
+# Load encryption key from macOS Keychain or secure storage
+export MCP_SQLITE_ENCRYPTION_KEY=$(security find-generic-password -s "mcp-sqlite" -a "encryption-key" -w 2>/dev/null)
+```
+
+**Or use a password manager:**
+```bash
+#!/bin/bash
+# Load from password manager (example with 1Password CLI)
+export MCP_SQLITE_ENCRYPTION_KEY=$(op read "op://Private/MCP-SQLite/encryption-key")
+```
+
+**Step 2:** Source the script before starting Cursor/Claude Desktop:
+
+```bash
+source ~/.config/mcp-sqlite/env.sh
+# Then start Cursor/Claude Desktop
+```
+
+**Step 3:** Use environment variable reference in configuration:
+
+```json
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-e",
+        "MCP_SQLITE_ENCRYPTION_KEY=${MCP_SQLITE_ENCRYPTION_KEY}",
+        "-v",
+        "/path/to/your/database.sqlite:/data/database.sqlite:ro",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
+        "--args",
+        "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"encrypted:your-encrypted-passphrase\"}"
+      ]
+    }
+  }
+}
+```
+
+**Note:** Some MCP clients may not expand shell variables. In that case, use Option 2 (Wrapper Script).
+
+### Option 2: Wrapper Script (Most Secure)
+
+Create a wrapper script that securely loads the encryption key and starts Docker.
+
+**Step 1:** Create wrapper script (`~/bin/mcp-sqlite-docker.sh`):
+
+```bash
+#!/bin/bash
+# Wrapper script to securely start MCP SQLite Server with Docker
+
+# Load encryption key from macOS Keychain
+ENCRYPTION_KEY=$(security find-generic-password -s "mcp-sqlite" -a "encryption-key" -w 2>/dev/null)
+
+if [ -z "$ENCRYPTION_KEY" ]; then
+    echo "Error: Encryption key not found in Keychain" >&2
+    exit 1
+fi
+
+# Database path (adjust as needed)
+DB_PATH="/path/to/your/database.sqlite"
+ENCRYPTED_PASSPHRASE="encrypted:your-encrypted-passphrase"
+
+# Start Docker container with encryption key
+exec docker run --rm -i \
+    -e "MCP_SQLITE_ENCRYPTION_KEY=$ENCRYPTION_KEY" \
+    -v "$DB_PATH:/data/database.sqlite:ro" \
+    ghcr.io/rosch100/mcp-sqlite:0.2.2 \
+    --args "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"$ENCRYPTED_PASSPHRASE\"}"
+```
+
+**Step 2:** Make it executable:
+
+```bash
+chmod +x ~/bin/mcp-sqlite-docker.sh
+```
+
+**Step 3:** Use the wrapper script in your configuration:
+
+```json
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "/Users/username/bin/mcp-sqlite-docker.sh",
+      "args": []
+    }
+  }
+}
+```
+
+**Benefits:**
+- Encryption key never appears in configuration file
+- Key is loaded securely from Keychain at runtime
+- Script can be protected with file permissions (`chmod 600`)
+- Works with all MCP clients
+
+### Option 3: Plain Passphrase (Less Secure, but Acceptable for Isolated Containers)
+
+If your Docker container is properly isolated and you trust your system security, you can use a plain passphrase directly. This is less secure than encrypted passphrases but avoids the key storage problem.
+
+**Configuration:**
+
+```json
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        "/path/to/your/database.sqlite:/data/database.sqlite:ro",
+        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
+        "--args",
+        "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-plain-passphrase\"}"
+      ]
+    }
+  }
+}
+```
+
+**Security Considerations:**
+- ⚠️ Passphrase is visible in configuration file
+- ⚠️ Passphrase is visible in `docker ps` output
+- ✅ No encryption key to manage
+- ✅ Suitable for isolated, trusted environments
+- ✅ Simpler configuration
+
+**When to use:**
+- Development environments
+- Isolated systems with strong access controls
+- When the database passphrase is not highly sensitive
+
+### Option 4: Separate Secrets File (Alternative)
+
+Store sensitive values in a separate file with restricted permissions.
+
+**Step 1:** Create secrets file (`~/.config/mcp-sqlite/secrets.env`):
+
+```bash
+# File permissions: chmod 600 ~/.config/mcp-sqlite/secrets.env
+MCP_SQLITE_ENCRYPTION_KEY=your-encryption-key-here
+```
+
+**Step 2:** Use a wrapper script that sources the secrets file:
+
+```bash
+#!/bin/bash
+source ~/.config/mcp-sqlite/secrets.env
+exec docker run --rm -i \
+    -e "MCP_SQLITE_ENCRYPTION_KEY=$MCP_SQLITE_ENCRYPTION_KEY" \
+    -v "/path/to/database.sqlite:/data/database.sqlite:ro" \
+    ghcr.io/rosch100/mcp-sqlite:0.2.2 \
+    --args '{"db_path":"/data/database.sqlite","passphrase":"encrypted:..."}'
+```
+
+**Step 3:** Protect the file:
+
+```bash
+chmod 600 ~/.config/mcp-sqlite/secrets.env
+```
+
+### Security Best Practices Summary
+
+1. **Never store encryption keys in version control**
+2. **Use macOS Keychain** (Option 1 or 2) for the most secure key storage
+3. **Use wrapper scripts** (Option 2) when MCP clients don't support environment variable expansion
+4. **Restrict file permissions** on any files containing secrets (`chmod 600`)
+5. **Use encrypted passphrases** with secure key storage (Options 1-2) for production
+6. **Consider plain passphrases** (Option 3) only for isolated, trusted environments
+7. **Rotate encryption keys** periodically and re-encrypt all passphrases
+8. **Monitor access** to systems storing encryption keys
 
 ### Custom Cipher Profile
 

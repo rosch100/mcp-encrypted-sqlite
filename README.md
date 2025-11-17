@@ -176,9 +176,15 @@ When using encrypted passphrases, you **must** pass the encryption key as an env
 - Replace `your-encryption-key` with your actual encryption key
 - Replace `your-encrypted-passphrase` with your encrypted passphrase (starting with `encrypted:`)
 
+**⚠️ Security Warning:** Storing both the encryption key and encrypted passphrase as plain text in your configuration file is a security risk. Anyone with access to the file can decrypt your passphrase. See [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md) for secure alternatives:
+- **Option 1:** Load encryption key from environment variable (external source)
+- **Option 2:** Use a wrapper script that loads the key from macOS Keychain (recommended)
+- **Option 3:** Use plain passphrase for isolated, trusted environments
+- **Option 4:** Store secrets in a separate file with restricted permissions
+
 **Note:** The database file is mounted as read-only (`:ro`) by default. Remove `:ro` if you need write access.
 
-For detailed Docker configuration options, see [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md).
+For detailed Docker configuration options and security best practices, see [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md).
 
 ### Custom Cipher Profile
 
@@ -573,6 +579,9 @@ mcp-sqlite/
 4. **Use different keys** for different environments (development, staging, production)
 5. **Never commit keys or encrypted passphrases** to version control
 6. **Monitor access** to systems storing encryption keys
+7. **⚠️ Never store both encryption key and encrypted passphrase in the same configuration file** - Use wrapper scripts or environment variables to load the key securely (see [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md) for details)
+8. **Use macOS Keychain** or secure secret storage for encryption keys when possible
+9. **Restrict file permissions** on configuration files containing secrets (`chmod 600`)
 
 ## Troubleshooting
 
