@@ -336,3 +336,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. See [CONTR
 ## Support
 
 For issues, questions, or contributions, please open an issue on [GitHub](https://github.com/rosch100/mcp-sqlite/issues).
+
+## Listing in Public Directories
+
+This MCP server can be listed in public MCP server directories. See [DIRECTORY_LISTING.md](DIRECTORY_LISTING.md) for instructions on how to submit this server to various public directories like MCPList.ai, MCP Index, and others.
