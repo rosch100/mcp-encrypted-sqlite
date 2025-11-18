@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2025-11-18
+
+### Changed
+- **Repository Privacy**: Removed all personal references from git history
+  - Replaced personal paths (`/Users/roschmac`) with generic examples (`/Users/username`)
+  - Replaced specific application paths with generic examples
+  - All commit messages and file contents now use generic placeholders
+- Updated documentation examples to use generic paths and usernames
+
+### Security
+- Git history has been rewritten to remove personal information
+- All file contents and commit messages are now privacy-compliant
+
 ## [0.2.2] - 2024-11-17
 
 ### Changed

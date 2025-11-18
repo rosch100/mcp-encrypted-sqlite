@@ -6,11 +6,11 @@
     "url": "https://github.com/rosch100/mcp-sqlite",
     "source": "github"
   },
-  "version": "0.2.2",
+  "version": "0.2.3",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/rosch100/mcp-sqlite:0.2.2",
+      "identifier": "ghcr.io/rosch100/mcp-sqlite:0.2.3",
       "transport": {
         "type": "stdio"
       },
@@ -32,7 +32,7 @@
       ],
       "installation": {
         "type": "source",
-        "instructions": "docker pull ghcr.io/rosch100/mcp-sqlite:0.2.2"
+        "instructions": "docker pull ghcr.io/rosch100/mcp-sqlite:0.2.3"
       },
       "configuration": {
         "mcpServers": {
@@ -44,7 +44,7 @@
               "-i",
               "-v",
               "${DB_PATH}:/data/database.sqlite:ro",
-              "ghcr.io/rosch100/mcp-sqlite:0.2.2",
+              "ghcr.io/rosch100/mcp-sqlite:0.2.3",
               "--args",
               "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"${DB_PASSPHRASE}\"}"
             ]
