@@ -129,13 +129,32 @@ jobs:
       id: publish
       run: |
         echo "Publishing to MCP Registry..."
-        if mcp-publisher publish; then
+        echo "Server name from server.json:"
+        jq -r '.name' server.json
+        echo "Repository URL:"
+        jq -r '.repository.url' server.json
+        echo "Version:"
+        jq -r '.version' server.json
+        
+        # Try to publish with verbose output
+        if mcp-publisher publish --verbose 2>&1; then
           echo "✅ Successfully published to MCP Registry"
           echo "published=true" >> $GITHUB_OUTPUT
         else
-          echo "❌ Failed to publish to MCP Registry"
+          EXIT_CODE=$?
+          echo "❌ Failed to publish to MCP Registry (exit code: $EXIT_CODE)"
           echo "published=false" >> $GITHUB_OUTPUT
-          exit 1
+          
+          # Check if it's a name conflict issue
+          echo ""
+          echo "Note: If you renamed the repository, you may need to:"
+          echo "1. Contact MCP Registry maintainers to update the repository name"
+          echo "2. Or publish as a new server with the new name"
+          echo ""
+          echo "Old name: io.github.rosch100/mcp-sqlite"
+          echo "New name: io.github.rosch100/mcp-encrypted-sqlite"
+          
+          exit $EXIT_CODE
         fi
     
     - name: Verify publication
