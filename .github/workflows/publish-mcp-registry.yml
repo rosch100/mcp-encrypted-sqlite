@@ -227,6 +227,7 @@ jobs:
         script: |
           const version = '${{ steps.version.outputs.version }}';
           const releaseUrl = '${{ github.event.release.html_url }}';
+          const repository = '${{ github.repository }}';
           
           const body = `## Release ${version} Published to MCP Registry ✅
           
@@ -236,16 +237,16 @@ jobs:
           
           Please submit this release to the following community directories:
           
-          - [ ] **MCPList.ai** - Use [MCPLIST_SUBMISSION.md](https://github.com/${{ github.repository }}/blob/main/MCPLIST_SUBMISSION.md)
-          - [ ] **MCP Index** - Use [MCPINDEX_SUBMISSION.md](https://github.com/${{ github.repository }}/blob/main/MCPINDEX_SUBMISSION.md)
-          - [ ] **MCPServ.club** - Use [MCPSERV_SUBMISSION.md](https://github.com/${{ github.repository }}/blob/main/MCPSERV_SUBMISSION.md)
-          - [ ] **Directory MCP** - Use [DIRECTORY_MCP_SUBMISSION.md](https://github.com/${{ github.repository }}/blob/main/DIRECTORY_MCP_SUBMISSION.md)
-          - [ ] **MCPHub** - Use [MCPHUB_SUBMISSION.md](https://github.com/${{ github.repository }}/blob/main/MCPHUB_SUBMISSION.md)
+          - [ ] **MCPList.ai** - Use [MCPLIST_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPLIST_SUBMISSION.md)
+          - [ ] **MCP Index** - Use [MCPINDEX_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPINDEX_SUBMISSION.md)
+          - [ ] **MCPServ.club** - Use [MCPSERV_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPSERV_SUBMISSION.md)
+          - [ ] **Directory MCP** - Use [DIRECTORY_MCP_SUBMISSION.md](https://github.com/${repository}/blob/main/DIRECTORY_MCP_SUBMISSION.md)
+          - [ ] **MCPHub** - Use [MCPHUB_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPHUB_SUBMISSION.md)
           
           ### Release Information
           - **Version**: ${version}
           - **Release**: ${releaseUrl}
-          - **Docker Image**: ghcr.io/${{ github.repository }}:${version}
+          - **Docker Image**: ghcr.io/${repository}:${version}
           
           ### Submission Templates
           All submission templates are available in the repository root directory.
