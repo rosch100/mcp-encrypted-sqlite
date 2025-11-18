@@ -170,12 +170,72 @@ stdio
 
 ---
 
-## Screenshots/Examples (Optional)
+## E-Mail-Vorlage für Submission
 
-Falls das Formular Screenshots oder Beispiele erlaubt:
-- Docker Image: `ghcr.io/rosch100/mcp-sqlite:latest`
-- GitHub Repository Screenshot
-- Beispiel-Konfiguration (siehe oben)
+```
+Betreff: MCP Server Submission: Encrypted SQLite MCP Server
+
+Hallo MCPList.ai Team,
+
+ich möchte meinen MCP Server zur Aufnahme in Ihr Verzeichnis vorschlagen:
+
+Server Name: Encrypted SQLite MCP Server
+GitHub Repository: https://github.com/rosch100/mcp-sqlite
+Version: 0.2.4
+
+Beschreibung:
+MCP server for SQLCipher 4 encrypted SQLite databases. Provides comprehensive tools for database exploration, querying, and CRUD operations. Features include encrypted passphrase support with macOS Keychain integration, configurable cipher profiles, and full SQL query support.
+
+Kategorien:
+- Database
+- Encryption
+- SQLite
+- CRUD Operations
+
+Features:
+- SQLCipher 4 support
+- Database exploration
+- Query support
+- CRUD operations
+- Configurable cipher profiles
+- Encrypted passphrase support
+
+Installation:
+docker pull ghcr.io/rosch100/mcp-sqlite:latest
+
+Dokumentation:
+- README: https://github.com/rosch100/mcp-sqlite/blob/main/README.md
+- Docker Quickstart: https://github.com/rosch100/mcp-sqlite/blob/main/DOCKER_QUICKSTART.md
+
+Konfiguration:
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        "/path/to/your/database.sqlite:/data/database.sqlite:ro",
+        "ghcr.io/rosch100/mcp-sqlite:latest",
+        "--args",
+        "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
+      ]
+    }
+  }
+}
+
+Mit freundlichen Grüßen
+[Ihr Name]
+```
+
+## Alternative Kontaktmöglichkeiten
+
+Falls die E-Mail-Adresse nicht direkt verfügbar ist:
+1. Prüfe die "About" oder "Contribute" Seite auf mcplist.ai
+2. Suche nach GitHub Repository von MCPList.ai (siehe Footer-Link)
+3. Nutze das Kontaktformular falls vorhanden
 
 ---
 
@@ -186,16 +246,16 @@ Falls das Formular Screenshots oder Beispiele erlaubt:
 - [ ] README.md ist vollständig
 - [ ] Docker Image ist verfügbar
 - [ ] Release ist erstellt
-- [ ] Formular ausgefüllt
-- [ ] Submission abgeschickt
+- [ ] E-Mail-Vorlage angepasst
+- [ ] E-Mail versendet
 - [ ] Bestätigung erhalten
 
 ---
 
 ## Nach der Submission
 
-1. Warte auf Bestätigung von MCPList.ai
-2. Prüfe, ob der Server im Verzeichnis erscheint
+1. Warte auf Antwort von MCPList.ai (kann einige Tage dauern)
+2. Prüfe regelmäßig, ob der Server im Verzeichnis erscheint
 3. Teste die Links und Informationen
-4. Aktualisiere bei Bedarf
+4. Aktualisiere bei Bedarf per E-Mail
 
