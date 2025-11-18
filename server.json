@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.rosch100/mcp-encrypted-sqlite",
-  "description": "MCP server for encrypted SQLite databases (SQLCipher 4) - Works with MoneyMoney, KeePass and other password-protected encrypted SQLite databases",
+  "description": "MCP server for encrypted SQLite databases (SQLCipher 4) - Works with MoneyMoney, KeePass and more",
   "repository": {
     "url": "https://github.com/rosch100/mcp-encrypted-sqlite",
     "source": "github"
