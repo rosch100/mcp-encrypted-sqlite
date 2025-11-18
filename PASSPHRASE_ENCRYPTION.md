@@ -105,13 +105,13 @@ If you don't want to use the scripts:
 
 ### Generate Key:
 ```bash
-java -cp build/libs/mcp-sqlite-0.2.2.jar com.example.mcp.sqlite.util.GenerateKey
+java -cp build/libs/mcp-sqlite-VERSION.jar com.example.mcp.sqlite.util.GenerateKey
 ```
 
 ### Encrypt Passphrase:
 ```bash
 export MCP_SQLITE_ENCRYPTION_KEY="<your-key>"
-java -cp build/libs/mcp-sqlite-0.2.2.jar com.example.mcp.sqlite.util.EncryptPassphrase "your-passphrase"
+java -cp build/libs/mcp-sqlite-VERSION.jar com.example.mcp.sqlite.util.EncryptPassphrase "your-passphrase"
 ```
 
 ## Security Considerations

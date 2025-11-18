@@ -48,13 +48,13 @@ The executable will be available at `build/install/mcp-sqlite/bin/mcp-sqlite`.
 You can also use the pre-built Docker image from GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/rosch100/mcp-sqlite:0.2.2
+docker pull ghcr.io/rosch100/mcp-sqlite:latest
 ```
 
-Or use the latest version:
+Or use a specific version:
 
 ```bash
-docker pull ghcr.io/rosch100/mcp-sqlite:latest
+docker pull ghcr.io/rosch100/mcp-sqlite:VERSION
 ```
 
 **Quick Start:** See [DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md) for Docker Desktop setup.
@@ -133,7 +133,7 @@ If you're using the Docker image, configure it as follows:
         "-i",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
+        "ghcr.io/rosch100/mcp-sqlite:latest",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
       ]
@@ -159,7 +159,7 @@ When using encrypted passphrases, you **must** pass the encryption key as an env
         "MCP_SQLITE_ENCRYPTION_KEY=your-encryption-key",
         "-v",
         "/path/to/your/database.sqlite:/data/database.sqlite:ro",
-        "ghcr.io/rosch100/mcp-sqlite:0.2.2",
+        "ghcr.io/rosch100/mcp-sqlite:latest",
         "--args",
         "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"encrypted:your-encrypted-passphrase\"}"
       ]
@@ -237,7 +237,7 @@ The key will be automatically loaded from the Keychain when no environment varia
 
 1. **Generate an encryption key:**
    ```bash
-   java -cp build/libs/mcp-sqlite-0.2.0.jar com.example.mcp.sqlite.config.PassphraseEncryption
+   java -cp build/libs/mcp-sqlite-VERSION.jar com.example.mcp.sqlite.config.PassphraseEncryption
    ```
    Or use this simple Java snippet:
    ```java
@@ -255,7 +255,7 @@ The key will be automatically loaded from the Keychain when no environment varia
    
    Using the CLI tool (after building):
    ```bash
-   java -cp build/libs/mcp-sqlite-0.2.0.jar com.example.mcp.sqlite.util.EncryptPassphrase "your-plain-passphrase"
+   java -cp build/libs/mcp-sqlite-VERSION.jar com.example.mcp.sqlite.util.EncryptPassphrase "your-plain-passphrase"
    ```
    
    Or programmatically:

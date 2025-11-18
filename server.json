@@ -32,7 +32,7 @@
       ],
       "installation": {
         "type": "source",
-        "instructions": "docker pull ghcr.io/rosch100/mcp-sqlite:0.2.3"
+        "instructions": "docker pull ghcr.io/rosch100/mcp-sqlite:latest"
       },
       "configuration": {
         "mcpServers": {
