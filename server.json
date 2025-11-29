@@ -16,14 +16,14 @@
       },
       "environmentVariables": [
         {
-          "description": "Path to the encrypted SQLite database file",
+          "description": "Path to the encrypted SQLite database file (inside container: /data/database.sqlite)",
           "isRequired": true,
           "format": "string",
           "isSecret": false,
           "name": "DB_PATH"
         },
         {
-          "description": "Passphrase for decrypting the database",
+          "description": "Passphrase for decrypting the database (or use encrypted: prefix for encrypted passphrases)",
           "isRequired": true,
           "format": "string",
           "isSecret": true,
@@ -31,16 +31,19 @@
         }
       ],
       "installation": {
-        "type": "source",
-        "instructions": "Build the project with: ./gradlew installDist"
+        "type": "oci",
+        "instructions": "## Quick Start with Docker\n\n1. Pull the Docker image:\n```bash\ndocker pull ghcr.io/rosch100/mcp-encrypted-sqlite:latest\n```\n\n2. Add to your Cursor MCP configuration (`~/.cursor/mcp.json`):\n```json\n{\n  \"mcpServers\": {\n    \"encrypted-sqlite\": {\n      \"command\": \"docker\",\n      \"args\": [\n        \"run\", \"--rm\", \"-i\",\n        \"-v\", \"/path/to/your/database.sqlite:/data/database.sqlite:ro\",\n        \"ghcr.io/rosch100/mcp-encrypted-sqlite:latest\",\n        \"--args\",\n        \"{\\\"db_path\\\":\\\"/data/database.sqlite\\\",\\\"passphrase\\\":\\\"your-passphrase\\\"}\"\n      ]\n    }\n  }\n}\n```\n\n3. Replace `/path/to/your/database.sqlite` with your database path and `your-passphrase` with your passphrase.\n\n4. Restart Cursor and verify in Settings → MCP that the server is running.\n\n## Usage Examples\n\nAsk Cursor AI:\n- \"List all tables in my database\"\n- \"Show me the schema of the accounts table\"\n- \"Query the last 10 transactions\"\n\n## From Source (Alternative)\n\n```bash\ngit clone https://github.com/rosch100/mcp-encrypted-sqlite.git\ncd mcp-encrypted-sqlite\n./gradlew installDist\n```"
       },
       "configuration": {
         "mcpServers": {
           "encrypted-sqlite": {
-            "command": "/Users/roschmac/Entwicklung/Python/mcp-encrypted-sqlite/run-mcp-server.sh",
+            "command": "docker",
             "args": [
+              "run", "--rm", "-i",
+              "-v", "${DB_PATH}:/data/database.sqlite:ro",
+              "ghcr.io/rosch100/mcp-encrypted-sqlite:latest",
               "--args",
-              "{\"db_path\":\"${DB_PATH}\",\"passphrase\":\"${DB_PASSPHRASE}\"}"
+              "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"${DB_PASSPHRASE}\"}"
             ]
           }
         }
