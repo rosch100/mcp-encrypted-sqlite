@@ -41,7 +41,52 @@ If you need to access data from any of these applications or other SQLCipher-enc
 - **Gradle** (wrapper included)
 - SQLite JDBC driver with encryption support (`sqlite-jdbc-3.50.1.0.jar` from [sqlite-jdbc-crypt](https://github.com/Willena/sqlite-jdbc-crypt))
 
-## Installation
+## Cursor Installation (Recommended)
+
+The easiest way to install this MCP server in Cursor is via the **Cursor MCP Store**:
+
+### One-Click Installation
+
+1. Visit [cursor.store/mcp/rosch100/mcp-encrypted-sqlite](https://www.cursor.store/mcp/rosch100/mcp-encrypted-sqlite)
+2. Click **"Add to Cursor"**
+3. Follow the prompts to configure your database path and passphrase
+
+### Manual Cursor Configuration
+
+If you prefer manual setup, add the following to your Cursor MCP configuration file (`~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "encrypted-sqlite": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/path/to/your/database.sqlite:/data/database.sqlite:ro",
+        "ghcr.io/rosch100/mcp-encrypted-sqlite:latest",
+        "--args",
+        "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"your-passphrase\"}"
+      ]
+    }
+  }
+}
+```
+
+**Note:** Replace `/path/to/your/database.sqlite` with the actual path to your encrypted SQLite database and `your-passphrase` with your database passphrase.
+
+### Using in Cursor
+
+Once installed, you can use the MCP server in Cursor by:
+
+1. Open Cursor Settings → MCP to verify the server is running
+2. In any chat, ask questions about your database:
+   - *"List all tables in my database"*
+   - *"Show me the schema of the accounts table"*
+   - *"Query the last 10 transactions"*
+
+The AI will automatically use the appropriate MCP tools to interact with your encrypted database.
+
+## Installation (From Source)
 
 1. Clone the repository:
 ```bash
