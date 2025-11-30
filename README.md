@@ -63,9 +63,7 @@ This server works with any MCP-compatible client. See the [Configuration](#confi
 
 Use the pre-built Docker image from GitHub Container Registry:
 
-```bash
-docker pull ghcr.io/rosch100/mcp-encrypted-sqlite:latest
-```
+`docker pull ghcr.io/rosch100/mcp-encrypted-sqlite:latest`
 
 **Quick Start:** See [DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md) for Docker Desktop setup.
 
@@ -74,15 +72,14 @@ docker pull ghcr.io/rosch100/mcp-encrypted-sqlite:latest
 ### From Source
 
 1. Clone the repository:
-```bash
-git clone https://github.com/rosch100/mcp-encrypted-sqlite.git
-cd mcp-encrypted-sqlite
-```
+
+   `git clone https://github.com/rosch100/mcp-encrypted-sqlite.git`
+   
+   `cd mcp-encrypted-sqlite`
 
 2. Build the project:
-```bash
-./gradlew build installDist
-```
+
+   `./gradlew build installDist`
 
 The build process will automatically download `sqlite-jdbc-3.50.1.0.jar` from [sqlite-jdbc-crypt releases](https://github.com/Willena/sqlite-jdbc-crypt/releases) and place it in the `libs/` directory.
 
