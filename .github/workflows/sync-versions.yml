@@ -1,0 +1,266 @@
+name: Sync Versions on Release
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to sync (e.g., 0.3.4)'
+        required: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for tags
+    
+    - name: Extract version from release or input
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "release" ]; then
+          VERSION="${{ github.event.release.tag_name }}"
+          # Remove 'v' prefix if present
+          VERSION=${VERSION#v}
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified"
+          exit 1
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Target version: $VERSION"
+    
+    - name: Check current versions
+      id: check
+      run: |
+        # Extract version from build.gradle
+        GRADLE_VERSION=$(grep "^version = " build.gradle | sed "s/version = '\\(.*\\)'/\\1/" | tr -d "'")
+        
+        # Extract version from server.json
+        SERVER_VERSION=$(jq -r '.version' server.json)
+        SERVER_IDENTIFIER=$(jq -r '.packages[0].identifier' server.json)
+        EXPECTED_IDENTIFIER="ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}"
+        
+        echo "Gradle version: $GRADLE_VERSION"
+        echo "Server.json version: $SERVER_VERSION"
+        echo "Server.json identifier: $SERVER_IDENTIFIER"
+        echo "Expected identifier: $EXPECTED_IDENTIFIER"
+        echo "Target version: ${{ steps.version.outputs.version }}"
+        
+        NEEDS_UPDATE=false
+        UPDATES=()
+        
+        # Check build.gradle
+        if [ "$GRADLE_VERSION" != "${{ steps.version.outputs.version }}" ]; then
+          echo "⚠️  build.gradle version mismatch: $GRADLE_VERSION != ${{ steps.version.outputs.version }}"
+          NEEDS_UPDATE=true
+          UPDATES+=("build.gradle")
+        fi
+        
+        # Check server.json version
+        if [ "$SERVER_VERSION" != "${{ steps.version.outputs.version }}" ]; then
+          echo "⚠️  server.json version mismatch: $SERVER_VERSION != ${{ steps.version.outputs.version }}"
+          NEEDS_UPDATE=true
+          UPDATES+=("server.json version")
+        fi
+        
+        # Check server.json identifier
+        if [ "$SERVER_IDENTIFIER" != "$EXPECTED_IDENTIFIER" ]; then
+          echo "⚠️  server.json identifier mismatch: $SERVER_IDENTIFIER != $EXPECTED_IDENTIFIER"
+          NEEDS_UPDATE=true
+          UPDATES+=("server.json identifier")
+        fi
+        
+        if [ "$NEEDS_UPDATE" = "true" ]; then
+          echo "needs_update=true" >> $GITHUB_OUTPUT
+          echo "updates=$(IFS=','; echo "${UPDATES[*]}")" >> $GITHUB_OUTPUT
+          echo "❌ Version synchronization needed"
+        else
+          echo "needs_update=false" >> $GITHUB_OUTPUT
+          echo "✅ All versions are synchronized"
+        fi
+    
+    - name: Update build.gradle
+      if: steps.check.outputs.needs_update == 'true'
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        # Update version in build.gradle
+        sed -i.bak "s/^version = '.*'/version = '$VERSION'/" build.gradle
+        rm build.gradle.bak
+        
+        echo "✅ Updated build.gradle to version $VERSION"
+        grep "^version = " build.gradle
+    
+    - name: Update server.json
+      if: steps.check.outputs.needs_update == 'true'
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        REPO="${{ github.repository }}"
+        
+        # Update version field
+        jq ".version = \"$VERSION\"" server.json > server.json.tmp
+        mv server.json.tmp server.json
+        
+        # Update identifier in packages array
+        jq ".packages[0].identifier = \"ghcr.io/$REPO:$VERSION\"" server.json > server.json.tmp
+        mv server.json.tmp server.json
+        
+        echo "✅ Updated server.json to version $VERSION"
+        echo "Version: $(jq -r '.version' server.json)"
+        echo "Identifier: $(jq -r '.packages[0].identifier' server.json)"
+    
+    - name: Verify all versions are synchronized
+      if: steps.check.outputs.needs_update == 'true'
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        GRADLE_VERSION=$(grep "^version = " build.gradle | sed "s/version = '\\(.*\\)'/\\1/" | tr -d "'")
+        SERVER_VERSION=$(jq -r '.version' server.json)
+        SERVER_IDENTIFIER=$(jq -r '.packages[0].identifier' server.json)
+        EXPECTED_IDENTIFIER="ghcr.io/${{ github.repository }}:$VERSION"
+        
+        ALL_SYNC=true
+        
+        if [ "$GRADLE_VERSION" != "$VERSION" ]; then
+          echo "❌ build.gradle still has wrong version: $GRADLE_VERSION != $VERSION"
+          ALL_SYNC=false
+        fi
+        
+        if [ "$SERVER_VERSION" != "$VERSION" ]; then
+          echo "❌ server.json still has wrong version: $SERVER_VERSION != $VERSION"
+          ALL_SYNC=false
+        fi
+        
+        if [ "$SERVER_IDENTIFIER" != "$EXPECTED_IDENTIFIER" ]; then
+          echo "❌ server.json still has wrong identifier: $SERVER_IDENTIFIER != $EXPECTED_IDENTIFIER"
+          ALL_SYNC=false
+        fi
+        
+        if [ "$ALL_SYNC" = "true" ]; then
+          echo "✅ All versions are now synchronized to $VERSION"
+        else
+          echo "❌ Version synchronization failed"
+          exit 1
+        fi
+    
+    - name: Commit and push changes
+      if: steps.check.outputs.needs_update == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add build.gradle server.json
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: sync versions to ${{ steps.version.outputs.version }}"
+          git push
+          echo "✅ Committed and pushed version updates"
+        fi
+    
+    - name: Update release tag and publish release
+      if: github.event_name == 'release'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const releaseId = context.payload.release.id;
+          const tagName = context.payload.release.tag_name;
+          const repo = context.repo;
+          
+          // If versions were updated, we need to update the release tag
+          const needsUpdate = '${{ steps.check.outputs.needs_update }}' === 'true';
+          
+          if (needsUpdate) {
+            console.log(`Updating release tag ${tagName} to point to latest commit...`);
+            
+            // Get the latest commit SHA
+            const { data: refs } = await github.rest.git.listMatchingRefs({
+              owner: repo.owner,
+              repo: repo.repo,
+              ref: `tags/${tagName}`
+            });
+            
+            // Delete old tag
+            if (refs.length > 0) {
+              await github.rest.git.deleteRef({
+                owner: repo.owner,
+                repo: repo.repo,
+                ref: `tags/${tagName}`
+              });
+            }
+            
+            // Get current commit SHA
+            const { data: currentCommit } = await github.rest.repos.getCommit({
+              owner: repo.owner,
+              repo: repo.repo,
+              ref: 'HEAD'
+            });
+            
+            // Create new tag on current commit
+            await github.rest.git.createRef({
+              owner: repo.owner,
+              repo: repo.repo,
+              ref: `refs/tags/${tagName}`,
+              sha: currentCommit.sha
+            });
+            
+            console.log(`✅ Updated release tag ${tagName} to commit ${currentCommit.sha}`);
+            
+            // Update release to point to new commit
+            await github.rest.repos.updateRelease({
+              owner: repo.owner,
+              repo: repo.repo,
+              release_id: releaseId,
+              target_commitish: currentCommit.sha
+            });
+            
+            console.log(`✅ Updated release to point to commit ${currentCommit.sha}`);
+          }
+          
+          // Publish the release if it's still in draft/prerelease state
+          const release = context.payload.release;
+          if (release.draft || release.prerelease) {
+            await github.rest.repos.updateRelease({
+              owner: repo.owner,
+              repo: repo.repo,
+              release_id: releaseId,
+              draft: false,
+              prerelease: false
+            });
+            console.log('✅ Published release');
+          } else {
+            console.log('✅ Release is already published');
+          }
+    
+    - name: Create summary
+      run: |
+        if [ "${{ steps.check.outputs.needs_update }}" = "true" ]; then
+          echo "## Version Synchronization Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All versions have been synchronized to **${{ steps.version.outputs.version }}**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Updated files:" >> $GITHUB_STEP_SUMMARY
+          IFS=',' read -ra UPDATES <<< "${{ steps.check.outputs.updates }}"
+          for update in "${UPDATES[@]}"; do
+            echo "- $update" >> $GITHUB_STEP_SUMMARY
+          done
+        else
+          echo "## Version Synchronization Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All versions are already synchronized to **${{ steps.version.outputs.version }}**" >> $GITHUB_STEP_SUMMARY
+        fi
+

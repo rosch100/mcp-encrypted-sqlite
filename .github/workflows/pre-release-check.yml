@@ -1,0 +1,102 @@
+name: Pre-Release Version Check
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to check (e.g., 0.3.4)'
+        required: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Extract version from release or input
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "release" ]; then
+          VERSION="${{ github.event.release.tag_name }}"
+          # Remove 'v' prefix if present
+          VERSION=${VERSION#v}
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified"
+          exit 1
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Checking version: $VERSION"
+    
+    - name: Check version synchronization
+      id: check
+      run: |
+        TARGET_VERSION="${{ steps.version.outputs.version }}"
+        
+        # Extract version from build.gradle
+        GRADLE_VERSION=$(grep "^version = " build.gradle | sed "s/version = '\\(.*\\)'/\\1/" | tr -d "'")
+        
+        # Extract version from server.json
+        SERVER_VERSION=$(jq -r '.version' server.json)
+        SERVER_IDENTIFIER=$(jq -r '.packages[0].identifier' server.json)
+        EXPECTED_IDENTIFIER="ghcr.io/${{ github.repository }}:$TARGET_VERSION"
+        
+        echo "Target version: $TARGET_VERSION"
+        echo "Gradle version: $GRADLE_VERSION"
+        echo "Server.json version: $SERVER_VERSION"
+        echo "Server.json identifier: $SERVER_IDENTIFIER"
+        echo "Expected identifier: $EXPECTED_IDENTIFIER"
+        
+        ERRORS=()
+        WARNINGS=()
+        
+        # Check build.gradle
+        if [ "$GRADLE_VERSION" != "$TARGET_VERSION" ]; then
+          ERRORS+=("build.gradle has version '$GRADLE_VERSION' but should be '$TARGET_VERSION'")
+        fi
+        
+        # Check server.json version
+        if [ "$SERVER_VERSION" != "$TARGET_VERSION" ]; then
+          ERRORS+=("server.json has version '$SERVER_VERSION' but should be '$TARGET_VERSION'")
+        fi
+        
+        # Check server.json identifier
+        if [ "$SERVER_IDENTIFIER" != "$EXPECTED_IDENTIFIER" ]; then
+          ERRORS+=("server.json identifier is '$SERVER_IDENTIFIER' but should be '$EXPECTED_IDENTIFIER'")
+        fi
+        
+        if [ ${#ERRORS[@]} -gt 0 ]; then
+          echo "❌ Version synchronization errors detected:"
+          for error in "${ERRORS[@]}"; do
+            echo "  - $error"
+          done
+          echo "is_synced=false" >> $GITHUB_OUTPUT
+          exit 1
+        else
+          echo "✅ All versions are synchronized to $TARGET_VERSION"
+          echo "is_synced=true" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Create summary
+      if: always()
+      run: |
+        if [ "${{ steps.check.outcome }}" = "failure" ]; then
+          echo "## ❌ Pre-Release Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Version synchronization errors were detected. Please run the 'Sync Versions on Release' workflow to fix them." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "## ✅ Pre-Release Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All versions are synchronized to **${{ steps.version.outputs.version }}**" >> $GITHUB_STEP_SUMMARY
+        fi
+

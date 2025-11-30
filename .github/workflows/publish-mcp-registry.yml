@@ -3,6 +3,10 @@ name: Publish to MCP Registry
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: ["Sync Versions on Release"]
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       version:
@@ -21,16 +25,35 @@ jobs:
       issues: write  # Required to create issues
     
     steps:
+    - name: Check if sync-versions completed successfully
+      if: github.event_name == 'workflow_run'
+      run: |
+        if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+          echo "❌ Sync Versions workflow did not complete successfully"
+          echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
+          exit 1
+        fi
+        echo "✅ Sync Versions workflow completed successfully"
+    
     - name: Checkout repository
       uses: actions/checkout@v4
     
-    - name: Extract version from tag or input
+    - name: Extract version from tag, workflow_run, or input
       id: version
       run: |
         if [ "${{ github.event_name }}" == "release" ]; then
           VERSION="${{ github.event.release.tag_name }}"
           # Remove 'v' prefix if present
           VERSION=${VERSION#v}
+        elif [ "${{ github.event_name }}" == "workflow_run" ]; then
+          # When triggered by workflow_run, read version from server.json
+          # The sync-versions workflow should have already updated it
+          VERSION=$(jq -r '.version' server.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "❌ Could not extract version from server.json"
+            exit 1
+          fi
+          echo "Extracted version from server.json: $VERSION"
         else
           VERSION="${{ github.event.inputs.version }}"
         fi
