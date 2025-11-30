@@ -7,11 +7,11 @@
     "source": "github"
   },
   "websiteUrl": "https://github.com/rosch100/mcp-encrypted-sqlite",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/rosch100/mcp-encrypted-sqlite:0.3.4",
+      "identifier": "ghcr.io/rosch100/mcp-encrypted-sqlite:0.3.5",
       "transport": {
         "type": "stdio"
       },
@@ -40,8 +40,11 @@
           "encrypted-sqlite": {
             "command": "docker",
             "args": [
-              "run", "--rm", "-i",
-              "-v", "${DB_PATH}:/data/database.sqlite:ro",
+              "run",
+              "--rm",
+              "-i",
+              "-v",
+              "${DB_PATH}:/data/database.sqlite:ro",
               "ghcr.io/rosch100/mcp-encrypted-sqlite:latest",
               "--args",
               "{\"db_path\":\"/data/database.sqlite\",\"passphrase\":\"${DB_PASSPHRASE}\"}"
