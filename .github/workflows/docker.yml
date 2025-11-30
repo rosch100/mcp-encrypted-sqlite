@@ -22,13 +22,32 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history to check for tags
+    
+    - name: Skip if tag exists for this commit
+      if: github.event_name == 'push' && github.ref_type == 'branch'
+      id: check_tag
+      run: |
+        # Check if there's a tag for this commit
+        TAGS=$(git tag --points-at HEAD)
+        if [ -n "$TAGS" ]; then
+          echo "⚠️  Tag(s) found for this commit: $TAGS"
+          echo "Skipping branch push build - tag build will handle it"
+          echo "skip=true" >> $GITHUB_OUTPUT
+        else
+          echo "No tags found for this commit, proceeding with branch build"
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Set up Docker Buildx
+      if: github.event_name != 'push' || github.ref_type != 'branch' || steps.check_tag.outputs.skip != 'true'
       uses: docker/setup-buildx-action@v3
       with:
         platforms: linux/amd64,linux/arm64
 
     - name: Log in to GitHub Container Registry
+      if: github.event_name != 'push' || github.ref_type != 'branch' || steps.check_tag.outputs.skip != 'true'
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
@@ -36,6 +55,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Extract metadata (tags, labels) for Docker
+      if: github.event_name != 'push' || github.ref_type != 'branch' || steps.check_tag.outputs.skip != 'true'
       id: meta
       uses: docker/metadata-action@v5
       with:
@@ -50,6 +70,7 @@ jobs:
           type=sha
 
     - name: Build and push Docker image
+      if: github.event_name != 'push' || github.ref_type != 'branch' || steps.check_tag.outputs.skip != 'true'
       uses: docker/build-push-action@v5
       with:
         context: .
