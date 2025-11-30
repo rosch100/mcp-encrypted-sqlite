@@ -635,8 +635,8 @@ Contributions are welcome! Please feel free to submit a Pull Request. See [CONTR
 
 For issues, questions, or contributions, please open an issue on [GitHub](https://github.com/rosch100/mcp-encrypted-sqlite/issues).
 
-## Support
+## Buy me a coffee
 
 Like this integration? Feel free to buy me a coffee! Your support helps me continue working on cool features.
 
-Visit: https://buymeacoffee.com/rosch100
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=rosch100&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/rosch100)
