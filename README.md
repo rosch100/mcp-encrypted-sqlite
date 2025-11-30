@@ -787,10 +787,6 @@ See [NOTICE](NOTICE) for detailed attribution information.
 - [sqlite-jdbc-crypt](https://github.com/Willena/sqlite-jdbc-crypt) - SQLite JDBC driver with encryption support
 - [Model Context Protocol](https://modelcontextprotocol.io/) - MCP specification
 
-## License Compliance
-
-All dependencies use licenses compatible with Apache License 2.0. See [LICENSES.md](LICENSES.md) for detailed license information and [NOTICE](NOTICE) for third-party attributions.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
@@ -802,3 +798,13 @@ For issues, questions, or contributions, please open an issue on [GitHub](https:
 ## Metadata
 
 This server includes `server.json` with metadata for MCP server directories and registries.
+
+## Buy me a coffee
+
+Like this integration? Feel free to buy me a coffee! ☕ Your support helps me continue working on cool features.
+
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=rosch100&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/rosch100)
+
+## License
+
+This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
