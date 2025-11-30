@@ -38,6 +38,7 @@ jobs:
         echo "Publishing version: $VERSION"
     
     - name: Validate server.json
+      id: validate
       run: |
         if ! command -v jq &> /dev/null; then
           sudo apt-get update && sudo apt-get install -y jq
@@ -48,8 +49,21 @@ jobs:
         
         # Check if version matches
         SERVER_VERSION=$(jq -r '.version' server.json)
+        RELEASE_VERSION="${{ steps.version.outputs.version }}"
         echo "Server.json version: $SERVER_VERSION"
-        echo "Release version: ${{ steps.version.outputs.version }}"
+        echo "Release version: $RELEASE_VERSION"
+        
+        if [ "$SERVER_VERSION" != "$RELEASE_VERSION" ]; then
+          echo "⚠️  WARNING: Version mismatch!"
+          echo "   server.json has: $SERVER_VERSION"
+          echo "   Release tag has: $RELEASE_VERSION"
+          echo "   Using server.json version for publishing"
+          echo "version=$SERVER_VERSION" >> $GITHUB_OUTPUT
+          echo "version_mismatch=true" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Versions match"
+          echo "version_mismatch=false" >> $GITHUB_OUTPUT
+        fi
     
     - name: Install mcp-publisher
       run: |
@@ -128,7 +142,8 @@ jobs:
     
     - name: Wait for Docker image to be available
       run: |
-        VERSION="${{ steps.version.outputs.version }}"
+        # Use validated version (from server.json if mismatch, otherwise from release tag)
+        VERSION="${{ steps.validate.outputs.version }}"
         IMAGE_NAME="${{ github.repository }}"
         MAX_ATTEMPTS=30
         ATTEMPT=0
@@ -177,8 +192,12 @@ jobs:
         jq -r '.name' server.json
         echo "Repository URL:"
         jq -r '.repository.url' server.json
-        echo "Version:"
+        echo "Version from server.json:"
         jq -r '.version' server.json
+        
+        if [ "${{ steps.validate.outputs.version_mismatch }}" == "true" ]; then
+          echo "⚠️  Note: Using version from server.json ($(jq -r '.version' server.json)) instead of release tag (${{ steps.version.outputs.version }})"
+        fi
         
         # Try to publish with verbose output
         if mcp-publisher publish --verbose 2>&1; then
