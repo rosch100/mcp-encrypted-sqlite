@@ -156,12 +156,6 @@ jobs:
         echo "✅ mcp-publisher installed successfully"
         mcp-publisher --version
     
-    - name: Authenticate with MCP Registry
-      run: |
-        echo "Authenticating with MCP Registry using GitHub OIDC..."
-        mcp-publisher login github-oidc
-        echo "✅ Authentication successful"
-    
     - name: Wait for Docker image to be available
       run: |
         # Use validated version (from server.json if mismatch, otherwise from release tag)
@@ -205,6 +199,13 @@ jobs:
             sleep 10
           fi
         done
+    
+    - name: Authenticate with MCP Registry
+      run: |
+        echo "Authenticating with MCP Registry using GitHub OIDC..."
+        echo "Note: Authenticating just before publish to ensure token is fresh"
+        mcp-publisher login github-oidc
+        echo "✅ Authentication successful"
     
     - name: Publish to MCP Registry
       id: publish
