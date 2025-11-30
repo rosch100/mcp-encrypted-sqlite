@@ -262,46 +262,4 @@ jobs:
           echo "⚠️  Could not verify via API, but publish succeeded"
         fi
     
-    - name: Create GitHub Issue for manual submissions
-      if: steps.publish.outputs.published == 'true'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const version = '${{ steps.version.outputs.version }}';
-          const releaseUrl = '${{ github.event.release.html_url }}';
-          const repository = '${{ github.repository }}';
-          
-          const body = `## Release ${version} Published to MCP Registry ✅
-          
-          The server has been automatically published to the official MCP Registry.
-          
-          ### Manual Submissions Required
-          
-          Please submit this release to the following community directories:
-          
-          - [ ] **MCPList.ai** - Use [MCPLIST_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPLIST_SUBMISSION.md)
-          - [ ] **MCP Index** - Use [MCPINDEX_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPINDEX_SUBMISSION.md)
-          - [ ] **MCPServ.club** - Use [MCPSERV_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPSERV_SUBMISSION.md)
-          - [ ] **Directory MCP** - Use [DIRECTORY_MCP_SUBMISSION.md](https://github.com/${repository}/blob/main/DIRECTORY_MCP_SUBMISSION.md)
-          - [ ] **MCPHub** - Use [MCPHUB_SUBMISSION.md](https://github.com/${repository}/blob/main/MCPHUB_SUBMISSION.md)
-          
-          ### Release Information
-          - **Version**: ${version}
-          - **Release**: ${releaseUrl}
-          - **Docker Image**: ghcr.io/${repository}:${version}
-          
-          ### Submission Templates
-          All submission templates are available in the repository root directory.
-          
-          ---
-          
-          *This issue was automatically created by the publish-mcp-registry workflow.*`;
-          
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: `📢 Manual Submission Required for Release ${version}`,
-            body: body,
-            labels: ['release', 'documentation', 'help wanted']
-          });
 
