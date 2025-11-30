@@ -13,11 +13,11 @@
   "author": "rosch100",
   "license": "Apache-2.0",
   "security_notes": "This MCP server requires access to local encrypted SQLite database files and passphrases. It uses SQL identifier validation to prevent SQL injection. Passphrases are stored in memory only and never logged. Supports encrypted passphrases with AES-256-GCM encryption. High permission level due to filesystem access and ability to read/write sensitive database content.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/rosch100/mcp-encrypted-sqlite:0.4.0",
+      "identifier": "ghcr.io/rosch100/mcp-encrypted-sqlite:0.4.1",
       "transport": {
         "type": "stdio"
       },
