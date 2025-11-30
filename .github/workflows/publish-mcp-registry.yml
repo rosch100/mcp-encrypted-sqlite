@@ -22,7 +22,6 @@ jobs:
     permissions:
       contents: read
       id-token: write  # Required for GitHub OIDC
-      issues: write  # Required to create issues
     
     steps:
     - name: Check if sync-versions completed successfully
