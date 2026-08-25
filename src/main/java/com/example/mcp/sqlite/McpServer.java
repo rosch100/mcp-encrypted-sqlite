@@ -2,6 +2,7 @@ package com.example.mcp.sqlite;
 
 import com.example.mcp.sqlite.config.CipherProfile;
 import com.example.mcp.sqlite.config.DatabaseConfig;
+import com.example.mcp.sqlite.util.SqlReadOnlyGuard;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -125,9 +126,14 @@ public class McpServer {
                     if (cipherJson.has("kdfAlgorithm")) builder.kdfAlgorithm(cipherJson.get("kdfAlgorithm").getAsString());
                     profile = builder.build();
                 }
+
+                boolean immutable = resolveImmutableFlag(configJson, false);
+                if (debugMode) {
+                    System.err.println("Immutable (lock bypass): " + immutable);
+                }
                 
                 try {
-                    config = DatabaseConfig.withDecryptedPassphrase(dbPath, passphrase, profile);
+                    config = DatabaseConfig.withDecryptedPassphrase(dbPath, passphrase, profile, immutable);
                     if (debugMode && isEncrypted) {
                         System.err.println("Passphrase successfully decrypted");
                     }
@@ -174,6 +180,7 @@ public class McpServer {
         log("Default Config present: " + (defaultConfig != null));
         if (defaultConfig != null) {
             log("Default DB Path: " + defaultConfig.databasePath());
+            log("Default immutable (lock bypass): " + defaultConfig.immutable());
         }
         
         String line;
@@ -487,9 +494,14 @@ public class McpServer {
         tools.add(getTableData);
 
         // execute_sql
+        boolean immutableDefault = defaultConfig != null && defaultConfig.immutable();
         JsonObject execQuery = new JsonObject();
         execQuery.addProperty("name", "execute_sql");
-        execQuery.addProperty("description", "Executes an arbitrary SQL statement (SELECT, INSERT, UPDATE, DELETE, DDL)");
+        execQuery.addProperty(
+                "description",
+                immutableDefault
+                        ? "Executes a read-only SQL statement (SELECT / read PRAGMA / EXPLAIN). Writes are disabled because immutable=true."
+                        : "Executes an arbitrary SQL statement (SELECT, INSERT, UPDATE, DELETE, DDL)");
         JsonObject execQueryInput = new JsonObject();
         execQueryInput.addProperty("type", "object");
         JsonObject execQueryProps = new JsonObject();
@@ -509,57 +521,59 @@ public class McpServer {
         execQuery.add("inputSchema", execQueryInput);
         tools.add(execQuery);
 
-        // insert_or_update
-        JsonObject insertOrUpdate = new JsonObject();
-        insertOrUpdate.addProperty("name", "insert_or_update");
-        insertOrUpdate.addProperty("description", "Performs an UPSERT operation (INSERT or UPDATE on conflict)");
-        JsonObject insertOrUpdateInput = new JsonObject();
-        insertOrUpdateInput.addProperty("type", "object");
-        JsonObject insertOrUpdateProps = new JsonObject();
-        if (defaultConfig == null) {
-            insertOrUpdateProps.add("db_path", createSchemaProperty("string", "Path to the database file"));
-            insertOrUpdateProps.add("passphrase", createSchemaProperty("string", "Passphrase for encryption"));
-        }
-        insertOrUpdateProps.add("table", createSchemaProperty("string", "Table name"));
-        insertOrUpdateProps.add("primary_keys", createSchemaProperty("array", "List of primary key columns"));
-        insertOrUpdateProps.add("rows", createSchemaProperty("array", "List of rows as objects"));
-        insertOrUpdateInput.add("properties", insertOrUpdateProps);
-        JsonArray insertOrUpdateRequired = new JsonArray();
-        insertOrUpdateRequired.add("table");
-        insertOrUpdateRequired.add("primary_keys");
-        insertOrUpdateRequired.add("rows");
-        if (defaultConfig == null) {
-            insertOrUpdateRequired.add("db_path");
-            insertOrUpdateRequired.add("passphrase");
-        }
-        insertOrUpdateInput.add("required", insertOrUpdateRequired);
-        insertOrUpdate.add("inputSchema", insertOrUpdateInput);
-        tools.add(insertOrUpdate);
+        if (!immutableDefault) {
+            // insert_or_update
+            JsonObject insertOrUpdate = new JsonObject();
+            insertOrUpdate.addProperty("name", "insert_or_update");
+            insertOrUpdate.addProperty("description", "Performs an UPSERT operation (INSERT or UPDATE on conflict)");
+            JsonObject insertOrUpdateInput = new JsonObject();
+            insertOrUpdateInput.addProperty("type", "object");
+            JsonObject insertOrUpdateProps = new JsonObject();
+            if (defaultConfig == null) {
+                insertOrUpdateProps.add("db_path", createSchemaProperty("string", "Path to the database file"));
+                insertOrUpdateProps.add("passphrase", createSchemaProperty("string", "Passphrase for encryption"));
+            }
+            insertOrUpdateProps.add("table", createSchemaProperty("string", "Table name"));
+            insertOrUpdateProps.add("primary_keys", createSchemaProperty("array", "List of primary key columns"));
+            insertOrUpdateProps.add("rows", createSchemaProperty("array", "List of rows as objects"));
+            insertOrUpdateInput.add("properties", insertOrUpdateProps);
+            JsonArray insertOrUpdateRequired = new JsonArray();
+            insertOrUpdateRequired.add("table");
+            insertOrUpdateRequired.add("primary_keys");
+            insertOrUpdateRequired.add("rows");
+            if (defaultConfig == null) {
+                insertOrUpdateRequired.add("db_path");
+                insertOrUpdateRequired.add("passphrase");
+            }
+            insertOrUpdateInput.add("required", insertOrUpdateRequired);
+            insertOrUpdate.add("inputSchema", insertOrUpdateInput);
+            tools.add(insertOrUpdate);
 
-        // delete_rows
-        JsonObject deleteRows = new JsonObject();
-        deleteRows.addProperty("name", "delete_rows");
-        deleteRows.addProperty("description", "Deletes rows from a table based on filters");
-        JsonObject deleteRowsInput = new JsonObject();
-        deleteRowsInput.addProperty("type", "object");
-        JsonObject deleteRowsProps = new JsonObject();
-        if (defaultConfig == null) {
-            deleteRowsProps.add("db_path", createSchemaProperty("string", "Path to the database file"));
-            deleteRowsProps.add("passphrase", createSchemaProperty("string", "Passphrase for encryption"));
+            // delete_rows
+            JsonObject deleteRows = new JsonObject();
+            deleteRows.addProperty("name", "delete_rows");
+            deleteRows.addProperty("description", "Deletes rows from a table based on filters");
+            JsonObject deleteRowsInput = new JsonObject();
+            deleteRowsInput.addProperty("type", "object");
+            JsonObject deleteRowsProps = new JsonObject();
+            if (defaultConfig == null) {
+                deleteRowsProps.add("db_path", createSchemaProperty("string", "Path to the database file"));
+                deleteRowsProps.add("passphrase", createSchemaProperty("string", "Passphrase for encryption"));
+            }
+            deleteRowsProps.add("table", createSchemaProperty("string", "Table name"));
+            deleteRowsProps.add("filters", createSchemaProperty("object", "Filters as key-value pairs"));
+            deleteRowsInput.add("properties", deleteRowsProps);
+            JsonArray deleteRowsRequired = new JsonArray();
+            deleteRowsRequired.add("table");
+            deleteRowsRequired.add("filters");
+            if (defaultConfig == null) {
+                deleteRowsRequired.add("db_path");
+                deleteRowsRequired.add("passphrase");
+            }
+            deleteRowsInput.add("required", deleteRowsRequired);
+            deleteRows.add("inputSchema", deleteRowsInput);
+            tools.add(deleteRows);
         }
-        deleteRowsProps.add("table", createSchemaProperty("string", "Table name"));
-        deleteRowsProps.add("filters", createSchemaProperty("object", "Filters as key-value pairs"));
-        deleteRowsInput.add("properties", deleteRowsProps);
-        JsonArray deleteRowsRequired = new JsonArray();
-        deleteRowsRequired.add("table");
-        deleteRowsRequired.add("filters");
-        if (defaultConfig == null) {
-            deleteRowsRequired.add("db_path");
-            deleteRowsRequired.add("passphrase");
-        }
-        deleteRowsInput.add("required", deleteRowsRequired);
-        deleteRows.add("inputSchema", deleteRowsInput);
-        tools.add(deleteRows);
 
         // get_table_schema
         JsonObject getTableSchema = new JsonObject();
@@ -768,6 +782,9 @@ public class McpServer {
         log("handleExecQuery called");
         DatabaseConfig config = getDatabaseConfig(params);
         String sql = requiredString(params, "sql");
+        if (config.immutable()) {
+            SqlReadOnlyGuard.requireReadOnly(sql);
+        }
         log("SQL query: " + sql.substring(0, Math.min(MAX_SQL_LOG_LENGTH, sql.length())));
         EncryptedSqliteClient.QueryResult result = sqliteClient.withConnection(config,
                 conn -> sqliteClient.executeQuery(conn, sql));
@@ -798,6 +815,7 @@ public class McpServer {
 
     private JsonElement handleInsertOrUpdate(JsonObject params) throws SQLException {
         DatabaseConfig config = getDatabaseConfig(params);
+        ensureWritable(config);
         String table = requiredString(params, "table");
         // Support both snake_case and camelCase for backward compatibility
         if (!params.has("primary_keys") && !params.has("primaryKeys")) {
@@ -829,6 +847,7 @@ public class McpServer {
 
     private JsonElement handleDelete(JsonObject params) throws SQLException {
         DatabaseConfig config = getDatabaseConfig(params);
+        ensureWritable(config);
         String table = requiredString(params, "table");
         ensureParam(params, "filters");
         Map<String, Object> filters = gson.fromJson(params.getAsJsonObject("filters"), MAP_TYPE);
@@ -987,7 +1006,14 @@ public class McpServer {
                     log("CipherProfile being overridden");
                     profile = resolveCipherProfile(params.getAsJsonObject("cipherProfile"));
                 }
-                return DatabaseConfig.withDecryptedPassphrase(dbPath, passphrase, profile);
+                boolean immutable = resolveImmutableFlag(params, defaultConfig.immutable());
+                if (defaultConfig.immutable()) {
+                    // Server started in lock-bypass mode: writes stay disabled even if a tool passes immutable=false.
+                    immutable = true;
+                }
+                log("Immutable (lock bypass): " + immutable
+                        + (params.has("immutable") ? " (override)" : " (default)"));
+                return DatabaseConfig.withDecryptedPassphrase(dbPath, passphrase, profile, immutable);
             } else {
                 log("No default config, using parameters");
                 // Must be provided in params
@@ -1016,7 +1042,26 @@ public class McpServer {
         Path dbPath = Path.of(dbPathStr);
         String passphrase = requiredString(params, "passphrase");
         CipherProfile profile = resolveCipherProfile(params.has("cipherProfile") ? params.getAsJsonObject("cipherProfile") : null);
-        return DatabaseConfig.withDecryptedPassphrase(dbPath, passphrase, profile);
+        boolean immutable = resolveImmutableFlag(params, false);
+        return DatabaseConfig.withDecryptedPassphrase(dbPath, passphrase, profile, immutable);
+    }
+
+    /**
+     * Reads optional {@code immutable} boolean from JSON (SQLite URI lock bypass).
+     */
+    private static boolean resolveImmutableFlag(JsonObject json, boolean defaultValue) {
+        if (json == null || !json.has("immutable") || json.get("immutable").isJsonNull()) {
+            return defaultValue;
+        }
+        return json.get("immutable").getAsBoolean();
+    }
+
+    private static void ensureWritable(DatabaseConfig config) {
+        if (config.immutable()) {
+            throw new IllegalStateException(
+                    "Write operations are disabled because immutable=true "
+                            + "(SQLite lock-bypass / snapshot mode).");
+        }
     }
 
     private CipherProfile resolveCipherProfile(JsonObject json) {

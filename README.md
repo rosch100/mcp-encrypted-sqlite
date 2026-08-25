@@ -115,6 +115,7 @@ The server communicates via STDIO (standard input/output). Add the following con
 
 - **`transport`**: Defaults to `"stdio"` (can be omitted)
 - **`cwd`**: Not needed when using absolute paths (can be omitted)
+- **`immutable`**: Optional boolean in the `--args` JSON. When `true`, opens the DB with SQLite URI `file:…?immutable=1` (no file locks). Use for peeking at DBs locked exclusively by another app (e.g. MoneyMoney). **All write tools/SQL are disabled** in this mode (`insert_or_update` / `delete_rows` omitted; `execute_sql` accepts read-only statements only).
 - **`env`**: Only needed if Java is not in your system PATH or for custom Java installation:
 
 ```json

@@ -59,8 +59,12 @@ public class EncryptedSqliteClient {
         // Note: Read-only mode is set, but executeQuery can still execute writes
         // This is intentional for the execute_sql tool, but should be documented
         mcConfig.setReadOnly(true);
+        if (config.immutable()) {
+            // Immutable opens without locks; do not wait on busy handlers.
+            mcConfig.setBusyTimeout(0);
+        }
 
-        String url = "jdbc:sqlite:" + config.databasePath();
+        String url = SqliteUtil.jdbcUrl(config.databasePath(), config.immutable());
         return mcConfig.createConnection(url);
     }
 

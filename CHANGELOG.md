@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-08-25
+
+### Changed
+- **`immutable=true` enforces read-only**: Write tools (`insert_or_update`, `delete_rows`) are omitted from `tools/list` and rejected at call time. `execute_sql` only accepts read-only statements (SELECT / EXPLAIN / read PRAGMA / read-only WITH).
+
+## [0.4.2] - 2026-08-25
+
+### Added
+- **`immutable` config flag**: Optional `immutable: true` in MCP `--args` JSON (and per-tool override) opens the database via SQLite URI `file:…?immutable=1` so the driver does not take file locks. Useful for reading databases held exclusively by another process (e.g. MoneyMoney). Not a coordinated concurrent reader — treat as snapshot/peek; avoid writes.
+
 ## [0.3.3] - 2025-11-29
 
 ### Added
